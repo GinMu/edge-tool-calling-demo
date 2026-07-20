@@ -1,0 +1,6 @@
+__pycache__
+.claude
+.vscode
+.DS_Store
+learn_receipt.json
+scripts.txt

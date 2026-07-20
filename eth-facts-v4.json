@@ -1,0 +1,41 @@
+{
+  "schema_version": "edge.demo.facts.v1",
+  "store": "ethereum_research_v1",
+  "facts": [
+    {
+      "fact_id": "risk-addr-phishing-001",
+      "topic": "risk address known",
+      "text": "Risk address: 0x896C2bcA84c70dBeA6555D24BE7712C7Cc0b8a3c — Category: phishing — Severity: high — Do not send funds to this address.",
+      "tags": ["ethereum", "risk", "address", "phishing"],
+      "source_label": "risk-addresses"
+    },
+    {
+      "fact_id": "risk-addr-mixer-002",
+      "topic": "risk address known",
+      "text": "Risk address: 0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b — Category: mixer — Severity: high — Regulatory compliance risk when interacting with this address.",
+      "tags": ["ethereum", "risk", "address", "mixer"],
+      "source_label": "risk-addresses"
+    },
+    {
+      "fact_id": "risk-addr-compromised-003",
+      "topic": "risk address known",
+      "text": "Risk address: 0xdAC17F958D2ee523a2206206994597C13D831ec7 — Category: compromised_contract — Severity: medium — Deprecated or compromised contract variant.",
+      "tags": ["ethereum", "risk", "address", "compromised_contract"],
+      "source_label": "risk-addresses"
+    },
+    {
+      "fact_id": "transfer-risk-policy",
+      "topic": "transfer risk validation policy",
+      "text": "Before assisting with any Ethereum transfer, the assistant MUST: (1) call facts_lookup with topic='risk address known' to retrieve all known risk addresses from the facts store; (2) extract the 0x addresses from the returned fact texts; (3) compare the user's destination 'to' address against each risk address (case-insensitive); (4) if matched, display a prominent warning with the risk category and severity; (5) do NOT proceed with transfer guidance until the user explicitly acknowledges the warning.",
+      "tags": ["ethereum", "transfer", "risk", "policy", "validation"],
+      "source_label": "app-policy"
+    },
+    {
+      "fact_id": "transfer-signing-boundary",
+      "topic": "transaction signing boundary",
+      "text": "The assistant must NOT sign or broadcast any transaction. It may only analyze the transaction plan, perform risk checks, and ask the user for explicit confirmation.",
+      "tags": ["ethereum", "transaction", "boundary", "policy"],
+      "source_label": "app-policy"
+    }
+  ]
+}

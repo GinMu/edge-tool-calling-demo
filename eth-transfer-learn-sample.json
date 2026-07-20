@@ -1,0 +1,172 @@
+{
+  "schema_version": "edge.demo.learn.sample.v1",
+  "sample_id": "ethereum_build_transfer_facts_v1",
+  "peer_id": "ethereum-demo-peer",
+  "app_id": "com.example.ethereum-agent",
+  "base_model_id": "qwen3.5-9b-4bit",
+  "question": "To handle transfer requests: Call facts_lookup once to retrieve all risk addresses. Then analyze the returned facts to check if the destination address appears in any fact text. If found, display a warning. If not found, call build_transfer with the destination address. Do not call facts_lookup multiple times.",
+  "questions": [
+    "To handle transfer requests: Call facts_lookup once to retrieve all risk addresses. Then analyze the returned facts to check if the destination address appears in any fact text. If found, display a warning. If not found, call build_transfer with the destination address. Do not call facts_lookup multiple times.",
+    "Workflow: (1) Call facts_lookup with default parameters to get current risk addresses, (2) Check if destination address is mentioned in any returned fact, (3) If matched: show warning with risk details, (4) If not matched: call build_transfer.",
+    "Risk checking rule: Get facts from facts_lookup (only call once), extract addresses from fact texts, compare destination against extracted addresses (case-insensitive). Match found = warn. No match = build transfer."
+  ],
+  "records": [
+    {
+      "record_id": "facts-store-reference",
+      "kind": "knowledge",
+      "text": "Risk address data is ONLY maintained in the 'ethereum_research_v1' facts store. Facts with topic='risk address known' contain ALL and ONLY the addresses to avoid. NEVER assume any address is risky. ONLY query facts_lookup at runtime to get current risk addresses. Do not reference fact IDs - they change. Example fact IDs (risk-addr-phishing-001, risk-addr-mixer-002, risk-addr-compromised-003) are for illustration only. Always query facts for authoritative list.",
+      "tags": ["ethereum", "facts", "risk", "reference"]
+    },
+    {
+      "record_id": "build-transfer-with-facts-workflow",
+      "kind": "tool_use",
+      "text": "When user asks to build transfer: (1) FIRST - query facts store with topic='risk address known' to retrieve current risk addresses dynamically. This is MANDATORY. (2) Extract ONLY 0x addresses from returned fact texts. (3) Compare destination 'to' address against ONLY the retrieved risk addresses (case-insensitive). (4) If address found in facts result, display warning. (5) If address NOT found in facts result, the address is SAFE - call build_transfer. (6) Never assume an address is risky without facts confirmation. Never make assumptions beyond facts data.",
+      "tags": ["ethereum", "build_transfer", "workflow", "facts", "dynamic"]
+    },
+    {
+      "record_id": "facts-lookup-method",
+      "kind": "tool_use",
+      "text": "Use facts store queries to dynamically retrieve risk information. The 'ethereum_research_v1' store contains facts about risk addresses. Each risk address fact includes: fact_id (unique identifier), topic ('risk address known'), text (contains address, category, severity), tags (ethereum, risk, address, category-type), source_label ('risk-addresses'). Facts are authoritative - always defer to them over any other knowledge.",
+      "tags": ["ethereum", "facts", "query", "method"]
+    },
+    {
+      "record_id": "dynamic-risk-warning",
+      "kind": "answer_style",
+      "text": "When risk detected from facts: Start with '⚠️ RISK ADDRESS WARNING'. Show address, extract category and severity from the RETURNED FACT TEXT (not from assumptions). Format: Address [addr] is flagged as [category] (Severity: [level]). Reason: [extracted from fact]. Do not proceed. ONLY show this warning if the address was found in facts_lookup results for topic='risk address known'.",
+      "tags": ["ethereum", "warning", "style", "facts_based"]
+    },
+    {
+      "record_id": "safe-build-transfer-style",
+      "kind": "answer_style",
+      "text": "When address is safe (NOT found in facts store results): Confirm that address was checked against ethereum_research_v1 facts store with topic='risk address known' and was NOT present in the results. Then call build_transfer with to=<address>. Present returned transaction data structure with status 'prepared'. Never assume safety - it must be confirmed by facts lookup results.",
+      "tags": ["ethereum", "safe", "style", "build_transfer"]
+    },
+    {
+      "record_id": "facts-source-authority",
+      "kind": "knowledge",
+      "text": "The ethereum_research_v1 facts store is the single source of truth for Ethereum risk addresses. Always query this store dynamically before making transfer decisions. Do not rely on hardcoded lists - facts may be updated without code changes. If facts store is unavailable, notify user and do not proceed with transfer guidance.",
+      "tags": ["ethereum", "facts", "authority", "policy"]
+    },
+    {
+      "record_id": "tool-call-format-critical",
+      "kind": "tool_use",
+      "text": "CRITICAL FORMAT: When calling tools, format MUST be exact JSON. For build_transfer after safe address check: When the destination address is NOT found in any fact text from facts_lookup, you MUST format the tool call exactly like this - use the exact parameter name 'to' (not 'address', not 'dest'), pass the 0x address as a string: {\"to\": \"0xaddress\"}. The parameter name must be lowercase 'to'. Example: if destination is 0x1234567890123456789012345678901234567890, the call must be: build_transfer(to=\"0x1234567890123456789012345678901234567890\")",
+      "tags": ["ethereum", "tool_format", "critical", "json"]
+    }
+  ],
+  "corrections": [
+    {
+      "peer_id": "ethereum-demo-peer",
+      "app_id": "com.example.ethereum-agent",
+      "correction_type": "profile_correction",
+      "target": { "profile_field": "ethereum_build_transfer_guidance" },
+      "correction": {
+        "profile_overlay": {
+          "priority": "ALWAYS call facts_lookup FIRST before any response",
+          "mandatory_first_tool": "facts_lookup",
+          "boundary": "never sign or broadcast transactions, only build data structures",
+          "tool_to_use_first": "facts_lookup",
+          "facts_store": "ethereum_research_v1",
+          "risk_query": {
+            "store": "ethereum_research_v1",
+            "topic_filter": "risk address known"
+          },
+          "mandatory_behaviors": [
+            "CRITICAL: Always call facts_lookup tool first with default parameters",
+            "Wait for facts_lookup result before making any assessment",
+            "Extract 0x addresses from fact texts",
+            "Only warn if address matches facts_lookup results",
+            "Only call build_transfer if address NOT in facts_lookup results",
+            "Never assume risk without facts_lookup confirmation",
+            "Never generate risk warnings without querying facts first"
+          ],
+          "mandatory_flow": [
+            "Step 1 (REQUIRED): Always call facts_lookup with no parameters",
+            "Step 2: Wait for and examine returned facts",
+            "Step 3: Extract addresses from fact texts",
+            "Step 4: Compare user's address against extracted addresses",
+            "Step 5: Only if match found -> warn. If no match -> call build_transfer"
+          ]
+        }
+      },
+      "status": "recorded"
+    }
+  ],
+  "tool_schema_export": {
+    "schema_version": "edgestudio.tool_schema_export.v1",
+    "tools": [
+      {
+        "name": "facts_lookup",
+        "description": "Query the Ethereum research facts store for risk addresses. Returns facts with topic='risk address known' from ethereum_research_v1 store.",
+        "permissions": ["read_local"],
+        "intentTags": ["facts", "lookup", "risk"],
+        "parameters": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "topic": { "type": "string", "description": "Topic filter for facts (default: 'risk address known')." }
+          }
+        }
+      },
+      {
+        "name": "build_transfer",
+        "description": "Build an Ethereum transfer transaction data structure. Takes destination address and returns transaction data. AI must verify address is safe by querying facts store before calling.",
+        "permissions": ["read_local"],
+        "intentTags": ["transfer", "build_tx", "risk_check"],
+        "parameters": {
+          "type": "object",
+          "required": ["to"],
+          "properties": {
+            "to": { "type": "string", "description": "Destination Ethereum address (0x-prefixed, 42 characters)." }
+          }
+        }
+      }
+    ]
+  },
+  "expected_tool_policy": {
+    "description": "Query facts store for risk addresses first. Call build_transfer tool only if address is safe (not in facts store).",
+    "facts_store": {
+      "store_name": "ethereum_research_v1",
+      "query_topic": "risk address known",
+      "authority": "single source of truth",
+      "dynamically_queried": true
+    },
+    "workflow": [
+      {
+        "step": 1,
+        "action": "Query facts store",
+        "details": "Use facts_lookup or similar to get facts with topic='risk address known' from ethereum_research_v1"
+      },
+      {
+        "step": 2,
+        "action": "Extract addresses",
+        "details": "Parse returned fact texts for 0x-prefixed Ethereum addresses"
+      },
+      {
+        "step": 3,
+        "action": "Compare addresses",
+        "details": "Case-insensitive comparison of destination against risk list"
+      },
+      {
+        "step": 4,
+        "action": "Decision",
+        "details": "If matched -> warn with facts data. If safe -> call build_transfer"
+      }
+    ],
+    "tools_available": [
+      {
+        "name": "build_transfer",
+        "when": "ONLY when the destination address is NOT found in ethereum_research_v1 facts store",
+        "args_constraint": "Pass to=<address> (0x-prefixed, 42 characters)",
+        "return_format": "Transaction data structure"
+      }
+    ],
+    "negative_policy": [
+      "Do NOT hardcode risk addresses - query facts store dynamically",
+      "Do NOT call build_transfer if destination matches any risk address from facts",
+      "Do not sign or broadcast transactions",
+      "Do not make assumptions about safety beyond facts store data",
+      "Always prioritize current facts store data over any other knowledge source"
+    ]
+  }
+}
