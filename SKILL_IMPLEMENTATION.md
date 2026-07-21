@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD007 -->
+<!-- markdownlint-disable MD029 -->
+
 # build-transfer-risk-detection Skill 实施指南
 
 ## 概述
@@ -33,7 +36,7 @@
 
 ### ✅ 1. 风险地址查询不通过代码获取，只学习facts
 
-- **实现**: 
+- **实现**:
   - `facts_lookup(topic)` 从`eth-facts-v4.json`动态读取
   - Learn sample无任何硬编码地址
   - AI通过行为学习，不通过数据学习
@@ -41,6 +44,7 @@
 ### ✅ 2. Sample只定义行为，不硬编码地址  
 
 - **Sample文本** (见skill第87-90行):
+
 ```json
 "text": "On transfer request: (1) IMMEDIATELY call facts_lookup(topic='risk address known'). 
 (2) Extract 0x addresses from returned fact texts only. (3) Case-insensitive compare. 
@@ -70,7 +74,7 @@
   - "✅ Facts store is the single source of truth"
   - "If not in facts → not risky"  
   - "**✅ No external knowledge, pattern matching, or prior examples**"
-- **Critical test** (见skill第125-140行): 
+- **Critical test** (见skill第125-140行):
   - 验证safe地址（不在facts中）正确返回`build_transfer`调用
   - 验证model不会基于"suspicion"或"pattern"标记为risky
 
@@ -154,7 +158,6 @@ edge demo chat --model qwen3.5-9b-4bit \
 ```
 
 2. **使用轻量化sample**:
-
    - 更新`eth-transfer-learn-sample.json`为更简短的版本
    - 运行learn，生成新的`learn_receipt.json`
 
